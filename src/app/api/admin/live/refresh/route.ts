@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
 
     // 保存配置
     await db.saveAdminConfig(config);
+    
+    // 清除配置缓存，强制下次重新从数据库读取
+    const { clearConfigCache } = await import('@/lib/config');
+    clearConfigCache();
 
     return NextResponse.json({
       success: true,

@@ -66,14 +66,30 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
     fileConfig = {} as ConfigFileStruct;
   }
 
-  // 保存用户分组配置（Tags）和用户的分组关联（user.tags），避免被配置文件覆盖
+  // 保存所有不在配置文件中的配置项，避免被覆盖
   const preservedTags = adminConfig.UserConfig?.Tags || [];
-  const preservedUserTags = new Map(
-    (adminConfig.UserConfig?.Users || []).map(u => [u.username, u.tags])
+  const preservedAllowRegister = adminConfig.UserConfig?.AllowRegister;
+  const preservedAutoCleanup = adminConfig.UserConfig?.AutoCleanupInactiveUsers;
+  const preservedInactiveDays = adminConfig.UserConfig?.InactiveUserDays;
+  
+  // 保存每个用户的完整配置
+  const preservedUserConfigs = new Map(
+    (adminConfig.UserConfig?.Users || []).map(u => [u.username, {
+      tags: u.tags,
+      enabledApis: u.enabledApis,
+      createdAt: u.createdAt,
+      tvboxToken: u.tvboxToken,
+      tvboxEnabledSources: u.tvboxEnabledSources,
+      showAdultContent: u.showAdultContent,
+    }])
   );
-  const preservedUserEnabledApis = new Map(
-    (adminConfig.UserConfig?.Users || []).map(u => [u.username, u.enabledApis])
-  );
+  
+  // 保存其他配置项
+  const preservedNetDiskConfig = adminConfig.NetDiskConfig;
+  const preservedAIRecommendConfig = adminConfig.AIRecommendConfig;
+  const preservedYouTubeConfig = adminConfig.YouTubeConfig;
+  const preservedTVBoxSecurityConfig = adminConfig.TVBoxSecurityConfig;
+  const preservedTelegramAuthConfig = adminConfig.TelegramAuthConfig;
 
   // 合并文件中的源信息
   const apiSitesFromFile = Object.entries(fileConfig.api_site || []);
@@ -188,25 +204,64 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
   // 将 Map 转换回数组
   adminConfig.LiveConfig = Array.from(currentLives.values());
 
-  // 恢复用户分组配置和用户的分组关联
+  // 恢复所有保存的配置项
   if (!adminConfig.UserConfig) {
     adminConfig.UserConfig = { Users: [] };
   }
-  adminConfig.UserConfig.Tags = preservedTags;
   
-  // 恢复每个用户的 tags 和 enabledApis
+  // 恢复用户配置相关
+  adminConfig.UserConfig.Tags = preservedTags;
+  if (preservedAllowRegister !== undefined) {
+    adminConfig.UserConfig.AllowRegister = preservedAllowRegister;
+  }
+  if (preservedAutoCleanup !== undefined) {
+    adminConfig.UserConfig.AutoCleanupInactiveUsers = preservedAutoCleanup;
+  }
+  if (preservedInactiveDays !== undefined) {
+    adminConfig.UserConfig.InactiveUserDays = preservedInactiveDays;
+  }
+  
+  // 恢复每个用户的完整配置
   adminConfig.UserConfig.Users.forEach(user => {
-    const userTags = preservedUserTags.get(user.username);
-    const userEnabledApis = preservedUserEnabledApis.get(user.username);
-    
-    if (userTags && userTags.length > 0) {
-      user.tags = userTags;
-    }
-    
-    if (userEnabledApis && userEnabledApis.length > 0) {
-      user.enabledApis = userEnabledApis;
+    const userConfig = preservedUserConfigs.get(user.username);
+    if (userConfig) {
+      if (userConfig.tags && userConfig.tags.length > 0) {
+        user.tags = userConfig.tags;
+      }
+      if (userConfig.enabledApis && userConfig.enabledApis.length > 0) {
+        user.enabledApis = userConfig.enabledApis;
+      }
+      if (userConfig.createdAt) {
+        user.createdAt = userConfig.createdAt;
+      }
+      if (userConfig.tvboxToken) {
+        user.tvboxToken = userConfig.tvboxToken;
+      }
+      if (userConfig.tvboxEnabledSources) {
+        user.tvboxEnabledSources = userConfig.tvboxEnabledSources;
+      }
+      if (userConfig.showAdultContent !== undefined) {
+        user.showAdultContent = userConfig.showAdultContent;
+      }
     }
   });
+  
+  // 恢复其他配置项
+  if (preservedNetDiskConfig) {
+    adminConfig.NetDiskConfig = preservedNetDiskConfig;
+  }
+  if (preservedAIRecommendConfig) {
+    adminConfig.AIRecommendConfig = preservedAIRecommendConfig;
+  }
+  if (preservedYouTubeConfig) {
+    adminConfig.YouTubeConfig = preservedYouTubeConfig;
+  }
+  if (preservedTVBoxSecurityConfig) {
+    adminConfig.TVBoxSecurityConfig = preservedTVBoxSecurityConfig;
+  }
+  if (preservedTelegramAuthConfig) {
+    adminConfig.TelegramAuthConfig = preservedTelegramAuthConfig;
+  }
 
   return adminConfig;
 }
@@ -341,10 +396,17 @@ export async function getConfig(): Promise<AdminConfig> {
   // db 中无配置，执行一次初始化
   if (!adminConfig) {
     adminConfig = await getInitConfig("");
+    // 只在初始化时保存配置
+    adminConfig = await configSelfCheck(adminConfig);
+    cachedConfig = adminConfig;
+    await db.saveAdminConfig(cachedConfig);
+  } else {
+    // 从数据库读取到配置时，只做自检，不自动保存
+    // 这样可以避免每次 getConfig 都覆盖数据库
+    adminConfig = await configSelfCheck(adminConfig);
+    cachedConfig = adminConfig;
   }
-  adminConfig = await configSelfCheck(adminConfig);
-  cachedConfig = adminConfig;
-  db.saveAdminConfig(cachedConfig);
+  
   return cachedConfig;
 }
 
@@ -367,13 +429,18 @@ export async function configSelfCheck(adminConfig: AdminConfig): Promise<AdminCo
     const dbUsers = await db.getAllUsers();
     const ownerUser = process.env.USERNAME;
 
+    // 保存现有用户的完整配置信息（包括 tags 和 enabledApis）
+    const existingUserConfigMap = new Map(
+      adminConfig.UserConfig.Users.map(u => [u.username, u])
+    );
+
     // 创建用户列表：保留数据库中存在的用户的配置信息
     const updatedUsers = dbUsers.map(username => {
       // 查找现有配置中是否有这个用户
-      const existingUserConfig = adminConfig.UserConfig.Users.find(u => u.username === username);
+      const existingUserConfig = existingUserConfigMap.get(username);
 
       if (existingUserConfig) {
-        // 保留现有配置
+        // 完整保留现有配置（包括 tags、enabledApis 等所有字段）
         return existingUserConfig;
       } else {
         // 新用户，创建默认配置

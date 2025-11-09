@@ -113,6 +113,10 @@ async function refreshAllLiveChannels() {
 
   // 保存配置
   await db.saveAdminConfig(config);
+  
+  // 清除配置缓存
+  const { clearConfigCache } = await import('@/lib/config');
+  clearConfigCache();
 }
 
 async function refreshConfig() {
@@ -160,6 +164,12 @@ async function refreshConfig() {
       config.ConfigSubscribtion.LastCheck = new Date().toISOString();
       config = refineConfig(config);
       await db.saveAdminConfig(config);
+      
+      // 🔥 关键修复：清除配置缓存，确保下次获取的是最新配置
+      const { clearConfigCache } = await import('@/lib/config');
+      clearConfigCache();
+      
+      console.log('✅ 配置刷新成功，缓存已清除');
     } catch (e) {
       console.error('刷新配置失败:', e);
     }
@@ -478,6 +488,11 @@ async function cleanupInactiveUsers() {
     // 如果有删除操作，保存更新后的配置
     if (deletedCount > 0) {
       await db.saveAdminConfig(config);
+      
+      // 清除配置缓存
+      const { clearConfigCache } = await import('@/lib/config');
+      clearConfigCache();
+      
       console.log(`✨ 清理完成，共删除 ${deletedCount} 个非活跃用户`);
     } else {
       console.log('✨ 清理完成，无需删除任何用户');
