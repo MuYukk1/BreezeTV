@@ -101,10 +101,12 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
     const existingSource = currentApiSites.get(key);
     if (existingSource) {
       // 如果已存在，只覆盖 name、api、detail 和 from
+      // 🔥 关键修复：保留 disabled 和 is_adult 状态
       existingSource.name = site.name;
       existingSource.api = site.api;
       existingSource.detail = site.detail;
       existingSource.from = 'config';
+      // disabled 和 is_adult 保持不变
     } else {
       // 如果不存在，创建新条目
       currentApiSites.set(key, {
@@ -114,6 +116,7 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
         detail: site.detail,
         from: 'config',
         disabled: false,
+        is_adult: false,
       });
     }
   });
