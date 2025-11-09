@@ -383,11 +383,9 @@ async function getInitConfig(configFile: string, subConfig: {
 }
 
 export async function getConfig(): Promise<AdminConfig> {
-  // 直接使用内存缓存
-  if (cachedConfig) {
-    return cachedConfig;
-  }
-
+  // 🔥 关键修复：完全禁用缓存，每次都从数据库读取最新配置
+  // 这样可以确保配置始终是最新的，避免缓存不一致问题
+  
   // 读 db
   let adminConfig: AdminConfig | null = null;
   try {
@@ -401,21 +399,21 @@ export async function getConfig(): Promise<AdminConfig> {
     adminConfig = await getInitConfig("");
     // 只在初始化时保存配置
     adminConfig = await configSelfCheck(adminConfig);
-    cachedConfig = adminConfig;
-    await db.saveAdminConfig(cachedConfig);
+    await db.saveAdminConfig(adminConfig);
   } else {
     // 从数据库读取到配置时，只做自检，不自动保存
     // 这样可以避免每次 getConfig 都覆盖数据库
     adminConfig = await configSelfCheck(adminConfig);
-    cachedConfig = adminConfig;
   }
   
-  return cachedConfig;
+  return adminConfig;
 }
 
 // 清除配置缓存，强制重新从数据库读取
 export function clearConfigCache(): void {
-  cachedConfig = null as any;
+  // 🔥 已禁用缓存，此函数保留仅为向后兼容
+  // getConfig() 现在每次都从数据库读取，无需清除缓存
+  console.log('clearConfigCache called but caching is disabled');
 }
 
 export async function configSelfCheck(adminConfig: AdminConfig): Promise<AdminConfig> {
@@ -685,7 +683,9 @@ export async function getAvailableApiSites(user?: string): Promise<ApiSite[]> {
 }
 
 export async function setCachedConfig(config: AdminConfig) {
-  cachedConfig = config;
+  // 🔥 已禁用缓存，此函数保留仅为向后兼容
+  // 配置会直接保存到数据库，下次 getConfig() 会从数据库读取
+  console.log('setCachedConfig called but caching is disabled');
 }
 
 // 特殊功能权限检查
