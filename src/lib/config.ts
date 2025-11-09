@@ -66,6 +66,15 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
     fileConfig = {} as ConfigFileStruct;
   }
 
+  // 保存用户分组配置（Tags）和用户的分组关联（user.tags），避免被配置文件覆盖
+  const preservedTags = adminConfig.UserConfig?.Tags || [];
+  const preservedUserTags = new Map(
+    (adminConfig.UserConfig?.Users || []).map(u => [u.username, u.tags])
+  );
+  const preservedUserEnabledApis = new Map(
+    (adminConfig.UserConfig?.Users || []).map(u => [u.username, u.enabledApis])
+  );
+
   // 合并文件中的源信息
   const apiSitesFromFile = Object.entries(fileConfig.api_site || []);
   const currentApiSites = new Map(
@@ -178,6 +187,26 @@ export function refineConfig(adminConfig: AdminConfig): AdminConfig {
 
   // 将 Map 转换回数组
   adminConfig.LiveConfig = Array.from(currentLives.values());
+
+  // 恢复用户分组配置和用户的分组关联
+  if (!adminConfig.UserConfig) {
+    adminConfig.UserConfig = { Users: [] };
+  }
+  adminConfig.UserConfig.Tags = preservedTags;
+  
+  // 恢复每个用户的 tags 和 enabledApis
+  adminConfig.UserConfig.Users.forEach(user => {
+    const userTags = preservedUserTags.get(user.username);
+    const userEnabledApis = preservedUserEnabledApis.get(user.username);
+    
+    if (userTags && userTags.length > 0) {
+      user.tags = userTags;
+    }
+    
+    if (userEnabledApis && userEnabledApis.length > 0) {
+      user.enabledApis = userEnabledApis;
+    }
+  });
 
   return adminConfig;
 }
