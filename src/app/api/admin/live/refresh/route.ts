@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
-import { getConfig } from '@/lib/config';
+import { clearConfigCache, getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 import { refreshLiveChannels } from '@/lib/live';
 
@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
     await db.saveAdminConfig(config);
     
     // 清除配置缓存，强制下次重新从数据库读取
-    const { clearConfigCache } = await import('@/lib/config');
     clearConfigCache();
 
     return NextResponse.json({

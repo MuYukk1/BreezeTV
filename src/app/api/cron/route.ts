@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getConfig, refineConfig } from '@/lib/config';
+import { clearConfigCache, getConfig, refineConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
 import { refreshLiveChannels } from '@/lib/live';
@@ -115,7 +115,6 @@ async function refreshAllLiveChannels() {
   await db.saveAdminConfig(config);
   
   // 清除配置缓存
-  const { clearConfigCache } = await import('@/lib/config');
   clearConfigCache();
 }
 
@@ -166,7 +165,6 @@ async function refreshConfig() {
       await db.saveAdminConfig(config);
       
       // 🔥 关键修复：清除配置缓存，确保下次获取的是最新配置
-      const { clearConfigCache } = await import('@/lib/config');
       clearConfigCache();
       
       console.log('✅ 配置刷新成功，缓存已清除');
@@ -490,7 +488,6 @@ async function cleanupInactiveUsers() {
       await db.saveAdminConfig(config);
       
       // 清除配置缓存
-      const { clearConfigCache } = await import('@/lib/config');
       clearConfigCache();
       
       console.log(`✨ 清理完成，共删除 ${deletedCount} 个非活跃用户`);
