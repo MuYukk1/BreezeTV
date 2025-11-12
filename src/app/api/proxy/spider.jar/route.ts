@@ -6,8 +6,9 @@ export const runtime = 'nodejs';
 // Spider JAR 本地代理端点 - 使用统一的 jar 获取逻辑
 export async function GET(_req: NextRequest) {
   try {
-    // 使用管理模块获取 jar（优先使用缓存）
-    const jarInfo = await getSpiderJar(false);
+    const { searchParams } = new URL(_req.url);
+    const regionParam = (searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl';
+    const jarInfo = await getSpiderJar(false, regionParam);
 
     console.log(`[Spider Proxy] 提供 ${jarInfo.success ? '真实' : '降级'} jar: ${jarInfo.source}, 大小: ${jarInfo.size} bytes, 缓存: ${jarInfo.cached}`);
 
@@ -20,6 +21,7 @@ export async function GET(_req: NextRequest) {
         'X-Spider-Source': jarInfo.source,
         'X-Spider-Success': jarInfo.success.toString(),
         'X-Spider-Cached': jarInfo.cached.toString(),
+        'X-Spider-Region': regionParam,
       },
     });
   } catch (error) {

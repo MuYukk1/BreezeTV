@@ -115,19 +115,23 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 从请求中获取 token 参数并传递给 tvbox API
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get('token');
+  // 从请求中获取 token 参数并传递给 tvbox API
+  const { searchParams } = new URL(req.url);
+  const token = searchParams.get('token');
+  const regionParam = (searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl';
 
     console.log('[Diagnose] Backend - Received token:', token ? '***' + token.slice(-4) : 'none');
     console.log('[Diagnose] Backend - Request URL:', req.url);
 
     // 直接调用 tvbox API 函数，而不是通过 HTTP fetch
     // 构建模拟请求对象
-    let configUrl = `${baseUrl}/api/tvbox?format=json`;
-    if (token) {
-      configUrl += `&token=${encodeURIComponent(token)}`;
-    }
+  let configUrl = `${baseUrl}/api/tvbox?format=json`;
+  if (token) {
+    configUrl += `&token=${encodeURIComponent(token)}`;
+  }
+  if (regionParam !== 'auto') {
+    configUrl += `&region=${regionParam}`;
+  }
 
     console.log('[Diagnose] Backend - Direct calling tvbox GET with URL:', configUrl);
 

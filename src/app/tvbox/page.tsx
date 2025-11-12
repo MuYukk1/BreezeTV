@@ -143,6 +143,7 @@ export default function TVBoxConfigPage() {
   const [copied, setCopied] = useState(false);
   const [format, setFormat] = useState<'json' | 'base64'>('json');
   const [configMode, setConfigMode] = useState<'standard' | 'safe' | 'fast' | 'yingshicang'>('standard');
+  const [region, setRegion] = useState<'auto' | 'cn' | 'intl'>('auto');
 
   // 🎯 智能搜索和过滤控制
   const [enableAdultFilter, setEnableAdultFilter] = useState(true); // 默认启用过滤
@@ -201,6 +202,23 @@ export default function TVBoxConfigPage() {
     fetchSecurityConfig();
   }, [fetchSecurityConfig]);
 
+  useEffect(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('tvbox_region') : null;
+      if (saved === 'cn' || saved === 'intl' || saved === 'auto') {
+        setRegion(saved as 'auto' | 'cn' | 'intl');
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tvbox_region', region);
+      }
+    } catch {}
+  }, [region]);
+
   const getConfigUrl = useCallback(() => {
     if (typeof window === 'undefined') return '';
     const baseUrl = window.location.origin;
@@ -231,6 +249,10 @@ export default function TVBoxConfigPage() {
       params.append('strict', '1');
     }
 
+    if (region !== 'auto') {
+      params.append('region', region);
+    }
+
     return `${baseUrl}/api/tvbox?${params.toString()}`;
   }, [format, configMode, securityConfig, userToken, enableAdultFilter, enableSmartProxy, enableStrictMode]);
 
@@ -251,6 +273,9 @@ export default function TVBoxConfigPage() {
       const params = new URLSearchParams();
       if (securityConfig?.enableAuth && securityConfig.token) {
         params.append('token', securityConfig.token);
+      }
+      if (region !== 'auto') {
+        params.append('region', region);
       }
       const response = await fetch(`/api/tvbox/diagnose?${params.toString()}`);
       const data = await response.json();
@@ -293,7 +318,11 @@ export default function TVBoxConfigPage() {
     setSmartHealthLoading(true);
     setSmartHealthResult(null);
     try {
-      const response = await fetch('/api/tvbox/smart-health');
+      const params = new URLSearchParams();
+      if (region !== 'auto') {
+        params.append('region', region);
+      }
+      const response = await fetch(`/api/tvbox/smart-health?${params.toString()}`);
       const data = await response.json();
       setSmartHealthResult(data);
     } catch (error) {
@@ -311,7 +340,11 @@ export default function TVBoxConfigPage() {
     setJarFixLoading(true);
     setJarFixResult(null);
     try {
-      const response = await fetch('/api/tvbox/jar-fix');
+      const params = new URLSearchParams();
+      if (region !== 'auto') {
+        params.append('region', region);
+      }
+      const response = await fetch(`/api/tvbox/jar-fix?${params.toString()}`);
       const data = await response.json();
       setJarFixResult(data);
     } catch (error) {
@@ -329,7 +362,11 @@ export default function TVBoxConfigPage() {
     setDeepDiagnosticLoading(true);
     setDeepDiagnosticResult(null);
     try {
-      const response = await fetch('/api/tvbox/jar-diagnostic');
+      const params = new URLSearchParams();
+      if (region !== 'auto') {
+        params.append('region', region);
+      }
+      const response = await fetch(`/api/tvbox/jar-diagnostic?${params.toString()}`);
       const data = await response.json();
       setDeepDiagnosticResult(data);
     } catch (error) {
@@ -467,6 +504,59 @@ export default function TVBoxConfigPage() {
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             🔗 配置链接
           </h2>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              当前地区
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <label className="flex items-center cursor-pointer p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                <input
+                  type="radio"
+                  name="region"
+                  value="auto"
+                  checked={region === 'auto'}
+                  onChange={(e) => setRegion(e.target.value as 'auto' | 'cn' | 'intl')}
+                  className="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white block">自动</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">按默认规则</span>
+                </div>
+              </label>
+              <label className="flex items-center cursor-pointer p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 dark:hover:border-green-400 transition-colors">
+                <input
+                  type="radio"
+                  name="region"
+                  value="cn"
+                  checked={region === 'cn'}
+                  onChange={(e) => setRegion(e.target.value as 'auto' | 'cn' | 'intl')}
+                  className="mr-2 w-4 h-4 text-green-600 focus:ring-green-500"
+                />
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white block">国内</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">使用国内优先源</span>
+                </div>
+              </label>
+              <label className="flex items-center cursor-pointer p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-500 dark:hover:border-purple-400 transition-colors">
+                <input
+                  type="radio"
+                  name="region"
+                  value="intl"
+                  checked={region === 'intl'}
+                  onChange={(e) => setRegion(e.target.value as 'auto' | 'cn' | 'intl')}
+                  className="mr-2 w-4 h-4 text-purple-600 focus:ring-purple-500"
+                />
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white block">国际</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">使用国际优先源</span>
+                </div>
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              未设置或选择“自动”时，按当前默认规则判断地区并返回JAR源。
+            </p>
+          </div>
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -676,6 +766,9 @@ export default function TVBoxConfigPage() {
                     if (configMode !== 'standard') {
                       params.append('mode', configMode);
                     }
+                    if (region !== 'auto') {
+                      params.append('region', region);
+                    }
                     const url = `${baseUrl}/api/tvbox?${params.toString()}`;
 
                     try {
@@ -721,6 +814,9 @@ export default function TVBoxConfigPage() {
                       params.append('mode', configMode);
                     }
                     params.append('filter', 'off'); // 关闭过滤
+                    if (region !== 'auto') {
+                      params.append('region', region);
+                    }
                     const url = `${baseUrl}/api/tvbox?${params.toString()}`;
 
                     try {
@@ -766,6 +862,9 @@ export default function TVBoxConfigPage() {
                       params.append('mode', configMode);
                     }
                     // 使用 /adult/ 路径前缀
+                    if (region !== 'auto') {
+                      params.append('region', region);
+                    }
                     const url = `${baseUrl}/adult/api/tvbox?${params.toString()}`;
 
                     try {

@@ -163,6 +163,7 @@ export async function GET(request: NextRequest) {
     const mode = (searchParams.get('mode') || '').toLowerCase(); // 支持safe|min模式
     const token = searchParams.get('token'); // 获取token参数
     const forceSpiderRefresh = searchParams.get('forceSpiderRefresh') === '1'; // 强制刷新spider缓存
+    const regionParam = ((searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl');
 
     // 读取当前配置
     const config = await getConfig();
@@ -694,7 +695,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 使用新的 Spider Jar 管理逻辑（下载真实 jar + 缓存）
-    const jarInfo = await getSpiderJar(forceSpiderRefresh);
+    const jarInfo = await getSpiderJar(forceSpiderRefresh, regionParam);
 
     // 🔑 最终策略：优先使用远程公网 jar，失败时使用本地代理
     let finalSpiderUrl: string;
@@ -705,7 +706,7 @@ export async function GET(request: NextRequest) {
       console.log(`[Spider] 使用远程公网 jar: ${jarInfo.source}`);
     } else {
       // 远程失败，使用本地代理端点（确保100%可用）
-      finalSpiderUrl = `${baseUrl}/api/proxy/spider.jar;md5;${jarInfo.md5}`;
+      finalSpiderUrl = `${baseUrl}/api/proxy/spider.jar${regionParam !== 'auto' ? `?region=${regionParam}` : ''};md5;${jarInfo.md5}`;
       console.warn(`[Spider] 远程 jar 获取失败，使用本地代理: ${finalSpiderUrl.split(';')[0]}`);
     }
 
@@ -734,6 +735,7 @@ export async function GET(request: NextRequest) {
     tvboxConfig.spider_real_size = jarInfo.size;
     tvboxConfig.spider_tried = jarInfo.tried;
     tvboxConfig.spider_success = jarInfo.success;
+    (tvboxConfig as any).region_used = regionParam;
 
     // 安全/最小模式：仅返回必要字段，提高兼容性
     if (mode === 'safe' || mode === 'min') {
@@ -838,8 +840,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 添加 Spider 状态透明化字段（帮助诊断）
-    tvboxConfig.spider_backup = `${baseUrl}/api/proxy/spider.jar`; // 本地代理地址
-    tvboxConfig.spider_candidates = getCandidates();
+    tvboxConfig.spider_backup = `${baseUrl}/api/proxy/spider.jar${regionParam !== 'auto' ? `?region=${regionParam}` : ''}`;
+    tvboxConfig.spider_candidates = getCandidates(regionParam);
 
     // 根据format参数返回不同格式
     if (format === 'base64' || format === 'txt') {

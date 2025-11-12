@@ -44,8 +44,8 @@ interface SpiderJarInfo {
 }
 
 // 动态候选源选择 - 根据当前环境智能选择最优源
-function getCandidatesForEnvironment(): string[] {
-  const isDomestic = isLikelyDomesticEnvironment();
+function getCandidatesForEnvironment(overrideRegion?: 'auto' | 'cn' | 'intl'): string[] {
+  const isDomestic = overrideRegion === 'cn' ? true : overrideRegion === 'intl' ? false : isLikelyDomesticEnvironment();
 
   if (isDomestic) {
     // 国内环境：优先国内源，然后国际源，最后代理源
@@ -179,7 +179,8 @@ function md5(buf: Buffer): string {
 }
 
 export async function getSpiderJar(
-  forceRefresh = false
+  forceRefresh = false,
+  overrideRegion?: 'auto' | 'cn' | 'intl'
 ): Promise<SpiderJarInfo> {
   const now = Date.now();
 
@@ -198,7 +199,7 @@ export async function getSpiderJar(
   }
 
   let tried = 0;
-  const candidates = getCandidatesForEnvironment();
+  const candidates = getCandidatesForEnvironment(overrideRegion);
 
   // 过滤掉近期失败的源（但允许一定时间后重试）
   const activeCandidates = candidates.filter((url) => !failedSources.has(url));
@@ -250,8 +251,8 @@ export function getSpiderStatus() {
   return cache ? { ...cache, buffer: undefined } : null;
 }
 
-export function getCandidates(): string[] {
-  return getCandidatesForEnvironment();
+export function getCandidates(overrideRegion?: 'auto' | 'cn' | 'intl'): string[] {
+  return getCandidatesForEnvironment(overrideRegion);
 }
 
 export function getAllCandidates() {

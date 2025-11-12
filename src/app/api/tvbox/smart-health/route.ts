@@ -152,11 +152,14 @@ export async function GET(request: NextRequest) {
     const networkEnv = detectNetworkEnvironment(request);
     console.log('[SmartHealth] 网络环境:', networkEnv);
 
+    const { searchParams } = new URL(request.url);
+    const regionParam = ((searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl');
+
     // 获取当前Spider状态
     const spiderStatus = getSpiderStatus();
 
     // 强制刷新获取最新JAR状态
-    const freshSpider = await getSpiderJar(true);
+    const freshSpider = await getSpiderJar(true, regionParam);
 
     // 测试关键源的可达性（使用实际验证过的源）
     const testSources = [
@@ -210,7 +213,14 @@ export async function GET(request: NextRequest) {
 
       // 网络环境信息
       network: {
-        environment: networkEnv.isDomestic ? 'domestic' : 'international',
+        environment:
+          regionParam === 'cn'
+            ? 'domestic'
+            : regionParam === 'intl'
+            ? 'international'
+            : networkEnv.isDomestic
+            ? 'domestic'
+            : 'international',
         region: networkEnv.region,
         detectionMethod: networkEnv.detectionMethod,
         optimized: true,
