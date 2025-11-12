@@ -17,7 +17,9 @@ export function useImagePreload(imageUrls: string[], enabled = true) {
       if (!url) return;
 
       // Check if already preloaded
-      const existing = document.querySelector(`link[rel="preload"][href="${url}"]`);
+      const existing = document.querySelector(
+        `link[rel="preload"][href="${url}"]`
+      );
       if (existing) return;
 
       const link = document.createElement('link');

@@ -26,7 +26,9 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set('adult', '1');
     }
 
-    console.log(`[Middleware ${requestId}] Rewritten path: ${url.pathname}${url.search}`);
+    console.log(
+      `[Middleware ${requestId}] Rewritten path: ${url.pathname}${url.search}`
+    );
 
     // 重写请求
     const response = NextResponse.rewrite(url);
@@ -38,7 +40,12 @@ export async function middleware(request: NextRequest) {
     if (newPathname.startsWith('/api')) {
       // 将重写后的请求传递给认证逻辑
       const modifiedRequest = new NextRequest(url, request);
-      return handleAuthentication(modifiedRequest, newPathname, requestId, response);
+      return handleAuthentication(
+        modifiedRequest,
+        newPathname,
+        requestId,
+        response
+      );
     }
 
     return response;
@@ -60,28 +67,40 @@ async function handleAuthentication(
   requestId: string,
   response?: NextResponse
 ) {
-
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
   console.log(`[Middleware ${requestId}] Storage type:`, storageType);
 
   if (!process.env.PASSWORD) {
-    console.log(`[Middleware ${requestId}] PASSWORD env not set, redirecting to warning`);
+    console.log(
+      `[Middleware ${requestId}] PASSWORD env not set, redirecting to warning`
+    );
     // 如果没有设置密码，重定向到警告页面
     const warningUrl = new URL('/warning', request.url);
     return NextResponse.redirect(warningUrl);
   }
 
   // 从cookie获取认证信息
-  console.log(`[Middleware ${requestId}] All cookies:`, request.cookies.getAll());
-  console.log(`[Middleware ${requestId}] Cookie header:`, request.headers.get('cookie'));
+  console.log(
+    `[Middleware ${requestId}] All cookies:`,
+    request.cookies.getAll()
+  );
+  console.log(
+    `[Middleware ${requestId}] Cookie header:`,
+    request.headers.get('cookie')
+  );
 
   const authInfo = getAuthInfoFromCookie(request);
-  console.log(`[Middleware ${requestId}] Auth info from cookie:`, authInfo ? {
-    username: authInfo.username,
-    hasSignature: !!authInfo.signature,
-    hasPassword: !!authInfo.password,
-    timestamp: authInfo.timestamp
-  } : null);
+  console.log(
+    `[Middleware ${requestId}] Auth info from cookie:`,
+    authInfo
+      ? {
+          username: authInfo.username,
+          hasSignature: !!authInfo.signature,
+          hasPassword: !!authInfo.password,
+          timestamp: authInfo.timestamp,
+        }
+      : null
+  );
 
   if (!authInfo) {
     console.log(`[Middleware ${requestId}] No auth info, failing auth`);
@@ -101,14 +120,17 @@ async function handleAuthentication(
   if (!authInfo.username || !authInfo.signature) {
     console.log(`[Middleware ${requestId}] Missing username or signature:`, {
       hasUsername: !!authInfo.username,
-      hasSignature: !!authInfo.signature
+      hasSignature: !!authInfo.signature,
     });
     return handleAuthFailure(request, pathname);
   }
 
   // 验证签名（如果存在）
   if (authInfo.signature) {
-    console.log(`[Middleware ${requestId}] Verifying signature for user:`, authInfo.username);
+    console.log(
+      `[Middleware ${requestId}] Verifying signature for user:`,
+      authInfo.username
+    );
     const isValidSignature = await verifySignature(
       authInfo.username,
       authInfo.signature,
@@ -125,7 +147,9 @@ async function handleAuthentication(
   }
 
   // 签名验证失败或不存在签名
-  console.log(`[Middleware ${requestId}] Signature verification failed, denying access`);
+  console.log(
+    `[Middleware ${requestId}] Signature verification failed, denying access`
+  );
   return handleAuthFailure(request, pathname);
 }
 

@@ -152,9 +152,13 @@ export default function HeroBanner({
               }`}
             >
               {/* 噪点纹理 */}
-              <div className='absolute inset-0 opacity-10' style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' /%3E%3C/svg%3E")',
-              }}></div>
+              <div
+                className='absolute inset-0 opacity-10'
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E\")",
+                }}
+              ></div>
             </div>
           );
         })}
@@ -190,21 +194,31 @@ export default function HeroBanner({
           {/* 元数据 */}
           <div className='flex items-center justify-center md:justify-start gap-2 sm:gap-3 text-xs sm:text-sm flex-shrink-0 flex-wrap'>
             {currentItem.year && (
-              <span className='text-white/90 font-medium'>{currentItem.year}</span>
+              <span className='text-white/90 font-medium'>
+                {currentItem.year}
+              </span>
             )}
             {currentItem.rate && (
               <div className='flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded'>
                 <span className='text-yellow-400'>★</span>
-                <span className='text-white font-semibold'>{currentItem.rate}</span>
+                <span className='text-white font-semibold'>
+                  {currentItem.rate}
+                </span>
               </div>
             )}
             {currentItem.type && (
               <span className='px-2 py-1 bg-white/20 backdrop-blur-sm rounded text-white/90'>
-                {currentItem.type === 'movie' ? '电影' :
-                 currentItem.type === 'tv' ? '剧集' :
-                 currentItem.type === 'variety' ? '综艺' :
-                 currentItem.type === 'shortdrama' ? '短剧' :
-                 currentItem.type === 'anime' ? '动漫' : '剧集'}
+                {currentItem.type === 'movie'
+                  ? '电影'
+                  : currentItem.type === 'tv'
+                  ? '剧集'
+                  : currentItem.type === 'variety'
+                  ? '综艺'
+                  : currentItem.type === 'shortdrama'
+                  ? '短剧'
+                  : currentItem.type === 'anime'
+                  ? '动漫'
+                  : '剧集'}
               </span>
             )}
           </div>
@@ -221,8 +235,16 @@ export default function HeroBanner({
             <Link
               href={
                 currentItem.type === 'shortdrama'
-                  ? `/play?title=${encodeURIComponent(currentItem.title)}&shortdrama_id=${currentItem.id}`
-                  : `/play?title=${encodeURIComponent(currentItem.title)}${currentItem.year ? `&year=${currentItem.year}` : ''}${currentItem.douban_id ? `&douban_id=${currentItem.douban_id}` : ''}${currentItem.type ? `&stype=${currentItem.type}` : ''}`
+                  ? `/play?title=${encodeURIComponent(
+                      currentItem.title
+                    )}&shortdrama_id=${currentItem.id}`
+                  : `/play?title=${encodeURIComponent(currentItem.title)}${
+                      currentItem.year ? `&year=${currentItem.year}` : ''
+                    }${
+                      currentItem.douban_id
+                        ? `&douban_id=${currentItem.douban_id}`
+                        : ''
+                    }${currentItem.type ? `&stype=${currentItem.type}` : ''}`
               }
               className='flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-black font-semibold rounded-xl hover:bg-gray-200 transition-all transform hover:scale-105 active:scale-95 shadow-lg text-sm sm:text-base'
             >
@@ -234,7 +256,9 @@ export default function HeroBanner({
                 currentItem.type === 'shortdrama'
                   ? '/shortdrama'
                   : `/douban?type=${
-                      currentItem.type === 'variety' ? 'show' : (currentItem.type || 'movie')
+                      currentItem.type === 'variety'
+                        ? 'show'
+                        : currentItem.type || 'movie'
                     }`
               }
               className='flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-white/30 transition-all transform hover:scale-105 active:scale-95 shadow-lg text-sm sm:text-base'

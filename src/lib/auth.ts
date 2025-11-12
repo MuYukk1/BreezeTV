@@ -9,7 +9,8 @@ export function getAuthInfoFromCookie(request: NextRequest): {
   loginTime?: number;
 } | null {
   // 尝试新的 cookie 名称 user_auth，如果没有则尝试旧的 auth
-  const authCookie = request.cookies.get('user_auth') || request.cookies.get('auth');
+  const authCookie =
+    request.cookies.get('user_auth') || request.cookies.get('auth');
 
   if (!authCookie) {
     return null;

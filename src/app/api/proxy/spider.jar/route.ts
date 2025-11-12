@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { getSpiderJar } from '@/lib/spiderJar';
 
 export const runtime = 'nodejs';
@@ -10,7 +11,11 @@ export async function GET(_req: NextRequest) {
     const regionParam = (searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl';
     const jarInfo = await getSpiderJar(false, regionParam);
 
-    console.log(`[Spider Proxy] 提供 ${jarInfo.success ? '真实' : '降级'} jar: ${jarInfo.source}, 大小: ${jarInfo.size} bytes, 缓存: ${jarInfo.cached}`);
+    console.log(
+      `[Spider Proxy] 提供 ${jarInfo.success ? '真实' : '降级'} jar: ${
+        jarInfo.source
+      }, 大小: ${jarInfo.size} bytes, 缓存: ${jarInfo.cached}`
+    );
 
     return new NextResponse(new Uint8Array(jarInfo.buffer), {
       headers: {

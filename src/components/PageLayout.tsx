@@ -13,7 +13,11 @@ interface PageLayoutProps {
   useModernNav?: boolean; // 新增：是否使用2025现代化导航
 }
 
-const PageLayout = ({ children, activePath = '/', useModernNav = true }: PageLayoutProps) => {
+const PageLayout = ({
+  children,
+  activePath = '/',
+  useModernNav = true,
+}: PageLayoutProps) => {
   const { siteName } = useSite();
 
   if (useModernNav) {
