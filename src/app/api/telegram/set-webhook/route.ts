@@ -13,23 +13,18 @@ export async function POST(request: Request) {
     const telegramConfig = config?.TelegramAuthConfig;
 
     if (!telegramConfig?.enabled || !telegramConfig.botToken) {
-      return NextResponse.json(
-        { error: 'Telegram 未配置' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Telegram 未配置' }, { status: 400 });
     }
 
     // 构建 webhook URL - 只使用当前访问的域名
     const host = request.headers.get('host');
     if (!host) {
-      return NextResponse.json(
-        { error: '无法获取当前域名' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '无法获取当前域名' }, { status: 400 });
     }
 
-    const protocol = request.headers.get('x-forwarded-proto') ||
-                     (host.includes('localhost') ? 'http' : 'https');
+    const protocol =
+      request.headers.get('x-forwarded-proto') ||
+      (host.includes('localhost') ? 'http' : 'https');
     const webhookUrl = `${protocol}://${host}/api/telegram/webhook`;
 
     console.log('[Set Webhook] Setting webhook to:', webhookUrl);
@@ -65,10 +60,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('[Set Webhook] Error:', error);
-    return NextResponse.json(
-      { error: '服务器错误' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
@@ -79,10 +71,7 @@ export async function GET() {
     const telegramConfig = config?.TelegramAuthConfig;
 
     if (!telegramConfig?.enabled || !telegramConfig.botToken) {
-      return NextResponse.json(
-        { error: 'Telegram 未配置' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Telegram 未配置' }, { status: 400 });
     }
 
     // 获取 webhook 信息
@@ -95,9 +84,6 @@ export async function GET() {
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Get Webhook] Error:', error);
-    return NextResponse.json(
-      { error: '服务器错误' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
