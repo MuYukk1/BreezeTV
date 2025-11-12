@@ -203,8 +203,9 @@ export async function GET(request: NextRequest) {
   try {
     const startTime = Date.now();
 
-    // 检测用户网络环境
-    const userRegion = getUserRegion(request);
+    const { searchParams } = new URL(request.url);
+    const regionParam = ((searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl');
+    const userRegion = regionParam === 'cn' ? 'domestic' : regionParam === 'intl' ? 'international' : getUserRegion(request);
 
     console.log(`[JAR-FIX] 开始测试JAR源，检测到用户区域：${userRegion}`);
 
@@ -266,8 +267,8 @@ export async function GET(request: NextRequest) {
       fixed_config_urls:
         bestSources.length > 0
           ? [
-              `${request.nextUrl.origin}/api/tvbox?forceSpiderRefresh=1`,
-              `${request.nextUrl.origin}/api/tvbox/config?forceSpiderRefresh=1`,
+              `${request.nextUrl.origin}/api/tvbox?forceSpiderRefresh=1${regionParam !== 'auto' ? `&region=${regionParam}` : ''}`,
+              `${request.nextUrl.origin}/api/tvbox/config?forceSpiderRefresh=1${regionParam !== 'auto' ? `&region=${regionParam}` : ''}`,
             ]
           : [],
 

@@ -14,7 +14,7 @@ module.exports = {
   ],
   rules: {
     'no-unused-vars': 'off',
-    'no-console': 'warn',
+    'no-console': 'warn', // 改为警告而不是错误
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'react/no-unescaped-entities': 'off',
 
@@ -32,7 +32,7 @@ module.exports = {
       {
         vars: 'all',
         varsIgnorePattern: '^_',
-        args: 'after-used',
+        args: 'all', // 改为 all，允许未使用的参数
         argsIgnorePattern: '^_',
       },
     ],

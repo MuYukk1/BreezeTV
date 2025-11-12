@@ -1,5 +1,13 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Children, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Children,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import AnimatedCardGrid from '@/components/AnimatedCardGrid';
 
@@ -18,7 +26,9 @@ function ScrollableRow({
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const checkScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const checkScroll = useCallback(() => {
     if (containerRef.current) {
@@ -30,8 +40,12 @@ function ScrollableRow({
         scrollWidth - (scrollLeft + clientWidth) > threshold;
       const canScrollLeft = scrollLeft > threshold;
 
-      setShowRightScroll((prev) => (prev !== canScrollRight ? canScrollRight : prev));
-      setShowLeftScroll((prev) => (prev !== canScrollLeft ? canScrollLeft : prev));
+      setShowRightScroll((prev) =>
+        prev !== canScrollRight ? canScrollRight : prev
+      );
+      setShowLeftScroll((prev) =>
+        prev !== canScrollLeft ? canScrollLeft : prev
+      );
     }
   }, []);
 
@@ -119,7 +133,7 @@ function ScrollableRow({
         onScroll={checkScroll}
       >
         {enableAnimation ? (
-          <AnimatedCardGrid className="flex space-x-6">
+          <AnimatedCardGrid className='flex space-x-6'>
             {children}
           </AnimatedCardGrid>
         ) : (

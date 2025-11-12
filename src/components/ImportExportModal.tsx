@@ -271,7 +271,9 @@ export default function ImportExportModal({
                       name='exportFormat'
                       value='array'
                       checked={exportFormat === 'array'}
-                      onChange={(e) => setExportFormat(e.target.value as 'array' | 'config')}
+                      onChange={(e) =>
+                        setExportFormat(e.target.value as 'array' | 'config')
+                      }
                       className='mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500'
                     />
                     <div className='flex-1'>
@@ -279,7 +281,10 @@ export default function ImportExportModal({
                         数组格式（推荐）
                       </div>
                       <div className='text-xs text-blue-700 dark:text-blue-300 mt-0.5'>
-                        适用于批量导入功能，结构：<code className='bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded'>[&#123;...&#125;]</code>
+                        适用于批量导入功能，结构：
+                        <code className='bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded'>
+                          [&#123;...&#125;]
+                        </code>
                       </div>
                     </div>
                   </label>
@@ -291,7 +296,9 @@ export default function ImportExportModal({
                       name='exportFormat'
                       value='config'
                       checked={exportFormat === 'config'}
-                      onChange={(e) => setExportFormat(e.target.value as 'array' | 'config')}
+                      onChange={(e) =>
+                        setExportFormat(e.target.value as 'array' | 'config')
+                      }
                       className='mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500'
                     />
                     <div className='flex-1'>
@@ -299,7 +306,10 @@ export default function ImportExportModal({
                         配置文件格式
                       </div>
                       <div className='text-xs text-blue-700 dark:text-blue-300 mt-0.5'>
-                        适用于直接插入配置文件，结构：<code className='bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded'>&#123;api_site: &#123;key: &#123;...&#125;&#125;&#125;</code>
+                        适用于直接插入配置文件，结构：
+                        <code className='bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded'>
+                          &#123;api_site: &#123;key: &#123;...&#125;&#125;&#125;
+                        </code>
                       </div>
                     </div>
                   </label>
@@ -312,7 +322,11 @@ export default function ImportExportModal({
                 </h4>
                 <ul className='text-xs text-green-800 dark:text-green-300 space-y-0.5'>
                   <li>• 视频源配置将导出为 JSON 格式</li>
-                  <li>• 文件名：{exportFormat === 'array' ? 'video_sources' : 'config'}_YYYYMMDD_HHMMSS.json</li>
+                  <li>
+                    • 文件名：
+                    {exportFormat === 'array' ? 'video_sources' : 'config'}
+                    _YYYYMMDD_HHMMSS.json
+                  </li>
                   <li>• 包含所有视频源的完整配置信息</li>
                   <li>• 可用于备份或迁移到其他设备</li>
                 </ul>

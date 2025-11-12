@@ -44,8 +44,8 @@ interface SpiderJarInfo {
 }
 
 // 动态候选源选择 - 根据当前环境智能选择最优源
-function getCandidatesForEnvironment(): string[] {
-  const isDomestic = isLikelyDomesticEnvironment();
+function getCandidatesForEnvironment(overrideRegion?: 'auto' | 'cn' | 'intl'): string[] {
+  const isDomestic = overrideRegion === 'cn' ? true : overrideRegion === 'intl' ? false : isLikelyDomesticEnvironment();
 
   if (isDomestic) {
     // 国内环境：优先国内源，然后国际源，最后代理源
@@ -69,7 +69,11 @@ function isLikelyDomesticEnvironment(): boolean {
   try {
     // 检查时区（简单判断）
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Chongqing') || tz.includes('Asia/Beijing')) {
+    if (
+      tz.includes('Asia/Shanghai') ||
+      tz.includes('Asia/Chongqing') ||
+      tz.includes('Asia/Beijing')
+    ) {
       return true;
     }
 
@@ -155,7 +159,9 @@ async function fetchRemote(
         continue;
       }
 
-      console.log(`[SpiderJar] Successfully fetched ${url}: ${ab.byteLength} bytes`);
+      console.log(
+        `[SpiderJar] Successfully fetched ${url}: ${ab.byteLength} bytes`
+      );
       return Buffer.from(ab);
     } catch (error: unknown) {
       _lastError = error instanceof Error ? error.message : 'fetch error';
@@ -170,7 +176,11 @@ async function fetchRemote(
   }
 
   // 记录最终失败
-  console.warn(`[SpiderJar] Failed to fetch ${url} after ${retryCount + 1} attempts: ${_lastError}`);
+  console.warn(
+    `[SpiderJar] Failed to fetch ${url} after ${
+      retryCount + 1
+    } attempts: ${_lastError}`
+  );
   return null;
 }
 
@@ -179,7 +189,8 @@ function md5(buf: Buffer): string {
 }
 
 export async function getSpiderJar(
-  forceRefresh = false
+  forceRefresh = false,
+  overrideRegion?: 'auto' | 'cn' | 'intl'
 ): Promise<SpiderJarInfo> {
   const now = Date.now();
 
@@ -198,7 +209,7 @@ export async function getSpiderJar(
   }
 
   let tried = 0;
-  const candidates = getCandidatesForEnvironment();
+  const candidates = getCandidatesForEnvironment(overrideRegion);
 
   // 过滤掉近期失败的源（但允许一定时间后重试）
   const activeCandidates = candidates.filter((url) => !failedSources.has(url));
@@ -250,8 +261,8 @@ export function getSpiderStatus() {
   return cache ? { ...cache, buffer: undefined } : null;
 }
 
-export function getCandidates(): string[] {
-  return getCandidatesForEnvironment();
+export function getCandidates(overrideRegion?: 'auto' | 'cn' | 'intl'): string[] {
+  return getCandidatesForEnvironment(overrideRegion);
 }
 
 export function getAllCandidates() {

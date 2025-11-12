@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { getAllCandidates } from '@/lib/spiderJar';
 
 /**
@@ -42,7 +43,10 @@ interface DiagnosticReport {
 }
 
 // 测试单个 JAR 源
-async function testJarSource(url: string, name: string): Promise<JarTestResult> {
+async function testJarSource(
+  url: string,
+  name: string
+): Promise<JarTestResult> {
   const startTime = Date.now();
   const result: JarTestResult = {
     url,
@@ -185,10 +189,13 @@ function detectEnvironment(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const env = detectEnvironment(request);
+  const { searchParams } = new URL(request.url);
+  const regionParam = ((searchParams.get('region') || 'auto') as 'auto' | 'cn' | 'intl');
+  const isDomesticOverride = regionParam === 'cn' ? true : regionParam === 'intl' ? false : env.isDomestic;
   const allSources = getAllCandidates();
 
   // 根据环境选择测试源
-  const testSources = env.isDomestic
+  const testSources = isDomesticOverride
     ? [
         ...allSources.domestic.map((url) => ({ url, name: '国内CDN' })),
         ...allSources.international.map((url) => ({ url, name: 'GitHub直连' })),
@@ -201,7 +208,7 @@ export async function GET(request: NextRequest) {
       ];
 
   console.log(
-    `🔍 开始 JAR 源诊断测试，环境: ${env.isDomestic ? '国内' : '国际'}`
+    `🔍 开始 JAR 源诊断测试，环境: ${isDomesticOverride ? '国内' : '国际'}`
   );
 
   // 并发测试所有源（但限制并发数）
@@ -279,6 +286,7 @@ export async function GET(request: NextRequest) {
     timestamp: new Date().toISOString(),
     environment: {
       ...env,
+      isDomestic: isDomesticOverride,
       recommendedSources: testSources.slice(0, 5).map((s) => s.url),
     },
     jarTests: results,
