@@ -283,6 +283,7 @@ export default function TVBoxConfigPage() {
     enableAdultFilter,
     enableSmartProxy,
     enableStrictMode,
+    region,
   ]);
 
   const handleCopy = async () => {
