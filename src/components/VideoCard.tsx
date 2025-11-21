@@ -680,28 +680,26 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
       handleDeleteRecord,
     ]);
 
-    return (
-      <>
-        <div
-          className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover:drop-shadow-2xl'
-          onClick={handleClick}
-          {...longPressProps}
-          style={
-            {
-              // 禁用所有默认的长按和选择效果
-              WebkitUserSelect: 'none',
-              userSelect: 'none',
-              WebkitTouchCallout: 'none',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              // 禁用右键菜单和长按菜单
-              pointerEvents: 'auto',
-            } as React.CSSProperties
-          }
-          onContextMenu={(e) => {
-            // 阻止默认右键菜单
-            e.preventDefault();
-            e.stopPropagation();
+  return (
+    <>
+      <div
+        className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-30 hover:drop-shadow-2xl'
+        onClick={handleClick}
+        {...longPressProps}
+        style={{
+          // 禁用所有默认的长按和选择效果
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          touchAction: 'manipulation',
+          // 禁用右键菜单和长按菜单
+          pointerEvents: 'auto',
+        } as React.CSSProperties}
+        onContextMenu={(e) => {
+          // 阻止默认右键菜单
+          e.preventDefault();
+          e.stopPropagation();
 
             // 右键弹出操作菜单
             setShowMobileActions(true);
@@ -1296,52 +1294,42 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
                         const remainingCount =
                           sortedSources.length - maxDisplayCount;
 
-                        return (
-                          <div
-                            className='absolute bottom-full mb-2 opacity-0 invisible group-hover/sources:opacity-100 group-hover/sources:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 right-0 sm:right-0 -translate-x-0 sm:translate-x-0'
-                            style={
-                              {
-                                WebkitUserSelect: 'none',
-                                userSelect: 'none',
-                                WebkitTouchCallout: 'none',
-                              } as React.CSSProperties
-                            }
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              return false;
-                            }}
-                          >
-                            <div
-                              className='bg-gray-800/90 backdrop-blur-sm text-white text-xs sm:text-xs rounded-lg shadow-xl border border-white/10 p-1.5 sm:p-2 min-w-[100px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] overflow-hidden'
-                              style={
-                                {
-                                  WebkitUserSelect: 'none',
-                                  userSelect: 'none',
-                                  WebkitTouchCallout: 'none',
-                                } as React.CSSProperties
-                              }
-                              onContextMenu={(e) => {
-                                e.preventDefault();
-                                return false;
-                              }}
-                            >
-                              {/* 单列布局 */}
-                              <div className='space-y-0.5 sm:space-y-1'>
-                                {displaySources.map((sourceName, index) => (
-                                  <div
-                                    key={index}
-                                    className='flex items-center gap-1 sm:gap-1.5'
-                                  >
-                                    <div className='w-0.5 h-0.5 sm:w-1 sm:h-1 bg-blue-400 rounded-full flex-shrink-0'></div>
-                                    <span
-                                      className='truncate text-[10px] sm:text-xs leading-tight'
-                                      title={sourceName}
-                                    >
-                                      {sourceName}
-                                    </span>
-                                  </div>
-                                ))}
+                    return (
+                      <div
+                        className='absolute bottom-full mb-2 opacity-0 invisible group-hover/sources:opacity-100 group-hover/sources:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-40 right-0 sm:right-0 -translate-x-0 sm:translate-x-0'
+                        style={{
+                          WebkitUserSelect: 'none',
+                          userSelect: 'none',
+                          WebkitTouchCallout: 'none',
+                        } as React.CSSProperties}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          return false;
+                        }}
+                      >
+                        <div
+                          className='bg-gray-800/90 backdrop-blur-sm text-white text-xs sm:text-xs rounded-lg shadow-xl border border-white/10 p-1.5 sm:p-2 min-w-[100px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] overflow-hidden'
+                          style={{
+                            WebkitUserSelect: 'none',
+                            userSelect: 'none',
+                            WebkitTouchCallout: 'none',
+                          } as React.CSSProperties}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            return false;
+                          }}
+                        >
+                          {/* 单列布局 */}
+                          <div className='space-y-0.5 sm:space-y-1'>
+                            {displaySources.map((sourceName, index) => (
+                              <div key={index} className='flex items-center gap-1 sm:gap-1.5'>
+                                <div className='w-0.5 h-0.5 sm:w-1 sm:h-1 bg-blue-400 rounded-full flex-shrink-0'></div>
+                                <span className='truncate text-[10px] sm:text-xs leading-tight' title={sourceName}>
+                                  {sourceName}
+                                </span>
                               </div>
+                            ))}
+                          </div>
 
                               {/* 显示更多提示 */}
                               {hasMore && (
@@ -1451,7 +1439,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(
               </span>
               {/* 增强的 tooltip */}
               <div
-                className='absolute bottom-full left-0 mb-2 px-3 py-2 bg-gradient-to-br from-gray-800 to-gray-900 text-white text-xs rounded-lg shadow-xl border border-white/10 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 backdrop-blur-sm'
+                className='absolute bottom-full left-0 mb-2 px-3 py-2 bg-gradient-to-br from-gray-800 to-gray-900 text-white text-xs rounded-lg shadow-xl border border-white/10 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-40 backdrop-blur-sm'
                 style={
                   {
                     WebkitUserSelect: 'none',

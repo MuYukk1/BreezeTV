@@ -2024,6 +2024,8 @@ function PlayPageClient() {
       // 对于短剧，直接获取详情，跳过搜索
       if (currentSource === 'shortdrama' && currentId) {
         sourcesInfo = await fetchSourceDetail(currentSource, currentId);
+        // 设置可用源列表（即使只有短剧源本身）
+        setAvailableSources(sourcesInfo);
       } else {
         // 其他情况先搜索所有视频源
         sourcesInfo = await fetchSourcesData(searchTitle || videoTitle);
@@ -2040,8 +2042,8 @@ function PlayPageClient() {
         }
 
         // 如果有 shortdrama_id，额外添加短剧源到可用源列表
-        // 但只有在没有指定其他源时才添加，避免电影等内容错误加载短剧源
-        if (shortdramaId && !currentSource && !currentId) {
+        // 即使已经有其他源，也尝试添加短剧源到换源列表中
+        if (shortdramaId) {
           try {
             const shortdramaSource = await fetchSourceDetail(
               'shortdrama',
@@ -3092,13 +3094,14 @@ function PlayPageClient() {
               hls.on(Hls.Events.ERROR, function (event: any, data: any) {
                 console.error('HLS Error:', event, data);
 
-                // v1.6.13 增强：处理片段解析错误（针对initPTS修复）
-                if (data.details === Hls.ErrorDetails.FRAG_PARSING_ERROR) {
-                  console.log('片段解析错误，尝试重新加载...');
-                  // 重新开始加载，利用v1.6.13的initPTS修复
-                  hls.startLoad();
-                  return;
-                }
+              // v1.6.15 改进：优化了播放列表末尾空片段/间隙处理，改进了音频TS片段duration处理
+              // v1.6.13 增强：处理片段解析错误（针对initPTS修复）
+              if (data.details === Hls.ErrorDetails.FRAG_PARSING_ERROR) {
+                console.log('片段解析错误，尝试重新加载...');
+                // 重新开始加载，利用v1.6.13的initPTS修复
+                hls.startLoad();
+                return;
+              }
 
                 // v1.6.13 增强：处理时间戳相关错误（直播回搜修复）
                 if (
@@ -4751,8 +4754,10 @@ function PlayPageClient() {
                 videoTitle={searchTitle || videoTitle}
                 availableSources={availableSources.filter((source) => {
                   // 必须有集数数据
-                  if (!source.episodes || source.episodes.length < 1)
-                    return false;
+                  if (!source.episodes || source.episodes.length < 1) return false;
+
+                  // 短剧源始终显示，不受集数差异限制
+                  if (source.source === 'shortdrama') return true;
 
                   // 如果当前有 detail，只显示集数相近的源（允许 ±30% 的差异）
                   if (detail && detail.episodes && detail.episodes.length > 0) {
